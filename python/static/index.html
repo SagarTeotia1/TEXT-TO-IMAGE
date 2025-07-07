@@ -1,0 +1,80 @@
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Image Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    input, button {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 1rem;
+    }
+    img {
+      margin-top: 1rem;
+      max-width: 100%;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generate an AI Image</h1>
+  <form id="genForm">
+    <label>Image URL:</label>
+    <input type="text" name="image_url" required placeholder="https://example.com/image.jpg">
+    
+    <label>Prompt:</label>
+    <input type="text" name="prompt" required placeholder="e.g. portrait of a smiling woman">
+
+    <label>Negative Prompt (optional):</label>
+    <input type="text" name="negative_prompt" placeholder="e.g. blurry, distorted">
+
+    <button type="submit">Generate</button>
+  </form>
+
+  <h3>Result:</h3>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById("genForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const payload = {
+        image_url: form.get("image_url"),
+        prompt: form.get("prompt"),
+        negative_prompt: form.get("negative_prompt")
+      };
+
+      document.getElementById("result").innerHTML = "Generating... Please wait ⏳";
+
+      try {
+        const res = await fetch("/generate", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        const resultDiv = document.getElementById("result");
+
+        if (data.status === "success") {
+          resultDiv.innerHTML = `<img src="${data.result}" alt="Generated Image">`;
+        } else {
+          resultDiv.innerHTML = `<p style="color:red;">❌ Error: ${data.message}</p>`;
+        }
+      } catch (err) {
+        document.getElementById("result").innerHTML = `<p style="color:red;">❌ Unexpected Error</p>`;
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
